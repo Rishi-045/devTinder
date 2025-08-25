@@ -9,61 +9,62 @@ app.use(express.json());
 
 app.post("/signup", async (req, res) => {
   try {
-    const data = {
-      firstName: "Rahul",
-      lastName: "Dravid",
-      email: "rahul@gmail.com",
-      password: "rahul@1234",
-    };
-    // creating new instance of User model
-    const user = new User(data);
+    const email = await User.find({ email: req.body.email });
+    console.log(email);
+    if (email.length > 0) {
+      res.send("Email already exists");
+    }
+    const user = new User(req.body);
     await user.save();
-    res.send("User added sucessfully");
+    res.send("User added successfully");
   } catch (err) {
     res.status(501).send("Unable to add User" + err);
   }
 });
 
-
-
-
-app.get("/user/:id", async(req,res)=>{
-    try{
-        
-    const {id} = req.params;
-  console.log(id);
-    const data = await User.find({_id : id});
-    res.send({
-        data : data,
-    });
-    }catch(e){
-        res.status(501).send("User does not exits");
+app.get("/user", async (req, res) => {
+  try {
+    const data = await User.findOne({ email: "rohit.sharma@example.com" });
+    if (!data) {
+      res.send("User not found!");
+    } else {
+      res.send({
+        data: data,
+      });
     }
-})
+  } catch (e) {
+    res.status(501).send("User does not exits");
+  }
+});
 
-
-app.delete("/delete/userid/:id", async(req,res)=>{
-    try{
-        
-    const {id} = req.params;
-    const data = await User.deleteOne({_id : id});
+app.delete("/delete/userid/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndDelete(id);
     res.send("User deleted successfully..");
-    }catch(e){
-        res.status(501).send("User does not exits");
+  } catch (e) {
+    res.status(501).send("User does not exits");
+  }
+});
+
+app.patch("/user/update", async(req,res)=>{
+
+  const userData = req.body;
+  try{
+    const user = await User.find({email : userData.email});
+    console.log(user);
+    if(user.length == 0){
+      res.send("User not Found!")
     }
+    else{
+      await User.updateOne({email : userData.email},userData);
+      res.send("User data updated...")
+  }
+  }catch(err){
+    res.status(501).send("Something went wrong.")
+  }
 })
 
-app.put("/update/userid/:id", async(req,res)=>{
-try{
-        const {id} = req.params;
-    const updatedData = req.body;
-
-    await User.updateOne({_id:id,$set:updatedData})
-    res.send("user data updated successfully..")
-}catch(err){
-    res.status(501).send("User does't exist in the database");
-}
-})
 
 
 connectDB()
