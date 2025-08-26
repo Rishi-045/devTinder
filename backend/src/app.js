@@ -8,13 +8,10 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
+  const userData = req.body
+  console.log(userData)
   try {
-    const email = await User.find({ email: req.body.email });
-    console.log(email);
-    if (email.length > 0) {
-      res.send("Email already exists");
-    }
-    const user = new User(req.body);
+    const user = new User(userData);
     await user.save();
     res.send("User added successfully");
   } catch (err) {
@@ -48,19 +45,16 @@ app.delete("/delete/userid/:id", async (req, res) => {
 });
 
 app.patch("/user/update", async(req,res)=>{
-
   const userData = req.body;
   try{
-    const user = await User.find({email : userData.email});
-    console.log(user);
-    if(user.length == 0){
-      res.send("User not Found!")
-    }
-    else{
-      await User.updateOne({email : userData.email},userData);
-      res.send("User data updated...")
+      await User.updateOne(
+        { _id: userData.userId },   
+        userData,                   
+        { runValidators: true }     
+      );
+      res.send("User data updated...");
   }
-  }catch(err){
+  catch(err){
     res.status(501).send("Something went wrong.")
   }
 })
