@@ -1,6 +1,8 @@
 const User = require("./models/user");
+const bcrypt = require("bcrypt");
 const express = require("express");
 require("dotenv").config();
+const { validateSignUpData } = require("../utils/validation");
 
 const connectDB = require("./config/database");
 
@@ -8,16 +10,40 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
   try {
-    const userData = req.body;
-    if(userData?.skills?.length > 10){
-      throw new Error("Skills cannot be more than 10.")
-    }
-    const user = new User(userData);
+    validateSignUpData(req);
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log(passwordHash);
+
+    const user = new User({
+      firstName,
+      lastName,
+      email,
+      password: passwordHash,
+    });
     await user.save();
     res.send("User added successfully");
   } catch (err) {
     res.status(501).send("Unable to add User" + err);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      throw new Error("User not found. Please sign up first.");
+    }
+    const encryptPassword = user.password;
+    const isPasswordValid = await bcrypt.compare(password, encryptPassword);
+    if (!isPasswordValid) {
+      throw new Error("Incorrect Password");
+    }
+    res.send("Logged in Successfully.......");
+  } catch (err) {
+    res.status(501).send("Error : " + err.message);
   }
 });
 
@@ -51,7 +77,7 @@ app.patch("/user/update/:id", async (req, res) => {
   try {
     const userId = req.params?.id;
     const userData = req.body;
-    console.log(userData)
+    console.log(userData);
     const ALLOWED_UPADATES = ["photoUrl", "about", "skills", "age", "gender"];
     const isALLOWED = Object.keys(userData).every((k) =>
       ALLOWED_UPADATES.includes(k)
@@ -59,8 +85,8 @@ app.patch("/user/update/:id", async (req, res) => {
     if (!isALLOWED) {
       throw new Error("Update not allowed!");
     }
-    if(userData?.skills?.length > 10){
-      throw new Error("Skills cannot be more than 10.")
+    if (userData?.skills?.length > 10) {
+      throw new Error("Skills cannot be more than 10.");
     }
     await User.updateOne({ _id: userId }, userData, { runValidators: true });
     res.send("User data updated...");
