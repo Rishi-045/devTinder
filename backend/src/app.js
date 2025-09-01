@@ -8,9 +8,11 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const userData = req.body
-  console.log(userData)
   try {
+    const userData = req.body;
+    if(userData?.skills?.length > 10){
+      throw new Error("Skills cannot be more than 10.")
+    }
     const user = new User(userData);
     await user.save();
     res.send("User added successfully");
@@ -20,8 +22,9 @@ app.post("/signup", async (req, res) => {
 });
 
 app.get("/user", async (req, res) => {
+  const { email } = req.body;
   try {
-    const data = await User.findOne({ email: "rohit.sharma@example.com" });
+    const data = await User.findOne({ email: email });
     if (!data) {
       res.send("User not found!");
     } else {
@@ -30,7 +33,7 @@ app.get("/user", async (req, res) => {
       });
     }
   } catch (e) {
-    res.status(501).send("User does not exits");
+    res.status(501).send("Something went wrong!");
   }
 });
 
@@ -44,22 +47,27 @@ app.delete("/delete/userid/:id", async (req, res) => {
   }
 });
 
-app.patch("/user/update", async(req,res)=>{
-  const userData = req.body;
-  try{
-      await User.updateOne(
-        { _id: userData.userId },   
-        userData,                   
-        { runValidators: true }     
-      );
-      res.send("User data updated...");
+app.patch("/user/update/:id", async (req, res) => {
+  try {
+    const userId = req.params?.id;
+    const userData = req.body;
+    console.log(userData)
+    const ALLOWED_UPADATES = ["photoUrl", "about", "skills", "age", "gender"];
+    const isALLOWED = Object.keys(userData).every((k) =>
+      ALLOWED_UPADATES.includes(k)
+    );
+    if (!isALLOWED) {
+      throw new Error("Update not allowed!");
+    }
+    if(userData?.skills?.length > 10){
+      throw new Error("Skills cannot be more than 10.")
+    }
+    await User.updateOne({ _id: userId }, userData, { runValidators: true });
+    res.send("User data updated...");
+  } catch (err) {
+    res.status(501).send("Something went wrong." + err.message);
   }
-  catch(err){
-    res.status(501).send("Something went wrong.")
-  }
-})
-
-
+});
 
 connectDB()
   .then(() => {

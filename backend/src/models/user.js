@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
+var validator = require('validator');
 
 const userSchema = new Schema({
   firstName: {
@@ -7,7 +8,13 @@ const userSchema = new Schema({
     lowercase : true,
     required : true,
     trim : true,
-    maxlength : 20
+    maxlength : 20,
+    validate : {
+      validator : function (value){
+        return /^[A-Za-z]+$/.test(value);
+      },
+      message : "Firstname must contain only letters."
+    }
 
   },
   lastName: {
@@ -15,14 +22,26 @@ const userSchema = new Schema({
     lowercase : true,
     required : true,
     trim : true,
-    maxlength : 20
+    maxlength : 20,
+      validate : {
+      validator : function (value){
+        return /^[A-Za-z]+$/.test(value);
+      },
+      message : "Lastname must contain only letters."
+    }
   },
   email: {
     type: String,
     lowercase : true,
     unique : true,
     required : true,
-    trim : true
+    trim : true,
+       validate: {
+      validator: function (value) {
+        return /^\S+@\S+\.\S+$/.test(value);
+      },
+      message: props => `${props.value} is not a valid email!`
+    }
     
   },
   password: {
@@ -37,8 +56,8 @@ const userSchema = new Schema({
   },
   age: {
     type: Number,
-    trim : true,
-    min : 18
+    min : 18,
+    max : 100
   },
   gender: {
     type: String,
@@ -53,12 +72,19 @@ const userSchema = new Schema({
   about : {
     type : String,
     default : "this is user default bio!",
-    trim : true
+    trim : true,
+    minlength : 20,
+    maxlength : 200
   },
   photoUrl : {
     type : String,
     default : "https://media.istockphoto.com/id/517998264/vector/male-user-icon.jpg?s=612x612&w=0&k=20&c=4RMhqIXcJMcFkRJPq6K8h7ozuUoZhPwKniEke6KYa_k=",
-    trim : true
+    validate : {
+      validator : function(value){
+        return validator.isURL(value);
+      },
+      message : "Invalid Url!"
+    }
   },
   skills : {
     type : [String]
