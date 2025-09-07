@@ -6,9 +6,9 @@ The goal is to create a platform where developers can connect, collaborate, and 
 ---
 
 ## 📌 Project Status  
-- 🟢 Started: **24th August 2025**  
-- 🔨 Currently setting up **Node.js, Express, and MongoDB** backend  
-- 📝 Frontend will be built with **React.js + Tailwind CSS**  
+- 🔐 Implemented **authentication** with JWT & cookies
+- 🔄 Currently building and testing routes with **Express Router**
+- 📝 Next step: Start working on the React.js + Tailwind CSS frontend
 
 ---
 
