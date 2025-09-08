@@ -8,14 +8,12 @@ authRouter.post("/signup", async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
   try {
     validateSignUpData(req);
-    const passwordHash = await bcrypt.hash(password, 10);
-    console.log(passwordHash);
 
     const user = new User({
       firstName,
       lastName,
       email,
-      password: passwordHash,
+      password,
     });
     await user.save();
     res.send("User added successfully");
@@ -32,7 +30,7 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("User not found. Please sign up first.");
     }
 
-    const isPasswordValid = user.validatePassword(password);
+    const isPasswordValid = await user.validatePassword(password);
     if (!isPasswordValid) {
       throw new Error("Incorrect Password");
     }

@@ -112,6 +112,17 @@ const userSchema = new Schema(
   }
 );
 
+// pre save hooks {when we save() any intance of this schema first validators will run then pre save hook will run }
+
+userSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  next();
+});
+
+// schema methods
+
 userSchema.methods.getJWT = function () {
   const user = this;
   const secretKey = process.env.SECRET_KEY;
