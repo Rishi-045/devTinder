@@ -21,12 +21,6 @@ requestRouter.post(
         });
       }
 
-      if (fromUserId == toUserId) {
-        return res.status(400).json({
-          message: "Invalid operation!",
-        });
-      }
-
       // if toUserId is not in our db
       const isToUserExist = await User.findById(toUserId);
       if (!isToUserExist) {
